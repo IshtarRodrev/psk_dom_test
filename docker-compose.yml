@@ -1,0 +1,42 @@
+version: '3.3'
+
+services:
+  database:
+    container_name: database_psk_dom
+    image: mysql:5.7
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: psk_dom_test2
+      MYSQL_USER: psk_dom
+      MYSQL_PASSWORD: alina_mega_pihar_2008
+    ports:
+      - '3306:3306'
+    volumes:
+      - ./mysql:/var/lib/mysql
+  php:
+    container_name: php_psk_dom
+    restart: always
+    build:
+      context: ./php
+    volumes:
+      - ./app:/var/www/psk_dom_test
+    depends_on:
+      - database
+    environment:
+      DATABASE_URL: "mysql://psk_dom:alina_mega_pihar_2008@database:3306/psk_dom_test2?serverVersion=5.7&charset=utf8mb4"
+      APP_ENV: dev
+      APP_DEBUG: 1
+  nginx:
+    container_name: nginx_psk_dom
+    restart: always
+    image: nginx:stable
+    ports:
+      - "80:80"
+    volumes:
+      - ./app:/var/www/psk_dom_test
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+      - database
